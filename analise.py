@@ -4,14 +4,14 @@ import json
 from random import random
 from datetime import datetime
 import requests
-import csv
-from sys import argv
 import pandas as pd
 import seaborn as sns
+from sys import argv
 
-URL = 'https://api.bcb.gov.br/dados/serie/bcdata.sgs.11/dados/ultimos/10?formato=json'
+# URL da API do Banco Central
+URL = 'https://api.bcb.gov.br/dados/serie/bcdata.sgs.11/dados?formato=json'
 
-# Etapa de Extração de Dados
+# Etapa de extração dos dados
 for _ in range(0, 10):
     data_e_hora = datetime.now()
     data = datetime.strftime(data_e_hora, '%Y/%m/%d')
@@ -22,38 +22,33 @@ for _ in range(0, 10):
         response.raise_for_status()
     except requests.exceptions.ConnectionError:
         print("Erro de conexão. Verifique sua conexão com a internet.")
-        selic = None
-        continue  # Pula para a próxima iteração
-    except requests.HTTPError:
+        taxa = None
+        continue
+    except requests.HTTPError as exc:
         print("Dado não encontrado, continuando.")
-        selic = None
+        taxa = None
     except Exception as exc:
         print("Erro, parando a execução.")
         raise exc
     else:
         dados = json.loads(response.text)
-        selic = float(dados[0]['valor']) + (random() - 0.5)  # Seleciona o valor do primeiro dado para simulação
+        taxa = float(dados[-1]['valor'].replace(',', '.')) + (random() - 0.5)
 
-    if not os.path.exists('./taxa-selic.csv'):
-        with open(file='./taxa-selic.csv', mode='w', encoding='utf8') as fp:
+    if not os.path.exists('./taxa-bcb.csv'):
+        with open(file='./taxa-bcb.csv', mode='w', encoding='utf8') as fp:
             fp.write('data,hora,taxa\n')
 
-    with open(file='./taxa-selic.csv', mode='a', encoding='utf8') as fp:
-        fp.write(f'{data},{hora},{selic}\n')
+    with open(file='./taxa-bcb.csv', mode='a', encoding='utf8') as fp:
+        fp.write(f'{data},{hora},{taxa}\n')
 
     time.sleep(2 + (random() - 0.5))
 
-print("Dados extraídos com sucesso e salvos em 'taxa-selic.csv'.")
+print("Sucesso na extração")
 
-# Etapa de Visualização dos Dados
-# Extraindo as colunas hora e taxa
-df = pd.read_csv('./taxa-selic.csv')
-
-# Salvando o gráfico
+# Etapa de visualização dos dados
+df = pd.read_csv('./taxa-bcb.csv')
 grafico = sns.lineplot(x=df['hora'], y=df['taxa'])
 _ = grafico.set_xticklabels(labels=df['hora'], rotation=90)
+grafico.get_figure().savefig(f"{argv[1]}.png")
 
-# Salva o gráfico com o nome fornecido pelo usuário como parâmetro de entrada
-output_filename = argv[1] if len(argv) > 1 else "grafico"
-grafico.get_figure().savefig(f"{output_filename}.png")
-print(f"Gráfico salvo como '{output_filename}.png'.")
+print("Gráfico salvo com sucesso")

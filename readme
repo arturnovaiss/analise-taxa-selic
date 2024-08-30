@@ -4,3 +4,7 @@ A proposta seria consultar a taxa Di cetip, porém, o link da mesma se encontra 
 extracao.py e visualizacao.py encontram-se com o formato original, sem alteração, de acordo com o que o professor passou,
 entretanto, criei analise.py voltado para fazer a analise da taxa selic utilizando a Api do Bando do Brasil, que retorna
 com sucesso o gráfico e o arquivo csv.
+
+# Atualização
+
+Projeto atualizado com novo link fornecido pelo professor.
